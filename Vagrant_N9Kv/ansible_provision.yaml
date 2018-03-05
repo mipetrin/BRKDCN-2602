@@ -1,0 +1,128 @@
+##############################################################
+# Provision Vagrant N9Kv devices via Ansible
+#
+# Used the following for basis of my work
+# https://github.com/hpreston/vagrant_net_prog
+# https://www.cisco.com/c/en/us/td/docs/switches/datacenter/nexus9000/sw/7-x/nx-osv/configuration/guide/b_NX-OSv_9000/b_NX-OSv_chapter_01.html
+#
+# Modified to suite my needs: Michael Petrinovic 2018
+#
+##############################################################
+---
+- name: Provision N9Kv Devices
+  hosts: vagrant
+  connection: local
+  gather_facts: no
+
+  vars:
+    cli_provider:
+      host: "{{ mgmt_ip }}"
+      port: "{{ ssh_port }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      transport: cli
+    nxapi_provider:
+      host: "{{ mgmt_ip }}"
+      port: "{{ http_port }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      transport: nxapi
+
+  tasks:
+    - name: Ensure to wait long enough to allow N9Kv to fully load
+      pause:
+        seconds: 60
+        # Can be removed or reduced if you promise to wait before running vagrant provision or vagrant up
+
+    - name: Configure Hostname
+      nxos_system:
+        provider: "{{ cli_provider }}"
+        timeout: 30
+        hostname: "{{ inventory_hostname }}"
+
+    - name: Enable various features
+      nxos_feature:
+        provider: "{{ cli_provider }}"
+        feature: "{{ item }}"
+        state: enabled
+      with_items:
+        - "nxapi"
+        - "lldp"
+        - "interface-vlan"
+
+    - name: Ensure a range of VLANs are present on the switch
+      nxos_vlan:
+        provider: "{{ cli_provider }}"
+        vlan_id: "{{ item.vlan }}" # Alternatively use vlan_range: "26-30" however it is mutually exclusive with name:
+        name: "{{ item.name }}"
+      with_items:
+        - { vlan: 26, name: "mipetrin_BRKDCN-2602_CLMEL18" }
+        - { vlan: 27, name: "DC" }
+        - { vlan: 28, name: "ACI" }
+        - { vlan: 29, name: "Security" }
+        - { vlan: 30, name: "Lab" }
+
+    - name: Assign VLANs to various interfaces
+      nxos_switchport:
+        provider: "{{ cli_provider }}"
+        interface: "{{ item.interface }}"
+        mode: trunk
+        trunk_allowed_vlans: "{{ item.vlan }}"
+      with_items: "{{ switchports }}"
+
+    - name: Configure Interfaces as Layer 3
+      with_items: "{{ interfaces }}"
+      nxos_interface:
+        provider: "{{ cli_provider }}"
+        interface: "{{ item.name }}"
+        mode: layer3
+        description: "{{ item.desc }}"
+        admin_state: up
+
+    # Configure unique MAC addresses per interface
+    # Update: Found solution via Vagrantfile to change the base mac - seems more elegant
+    # Update2: Doesn't seem to work for Eth1/1 only, so need to use the below, otherwise both end up with 0800.276c.ee14
+    - name: Configure MAC Addresses on interfaces
+      with_items: "{{ mac_addresses }}"
+      nxos_config:
+        provider: "{{ cli_provider }}"
+        parents: "interface {{ item.interface }}"
+        lines:
+          - "mac-address {{ item.address}}"
+
+    - name: Configure IPv4 Address on L3 Interfaces
+      with_items: "{{ interfaces }}"
+      nxos_ip_interface:
+        provider: "{{ cli_provider }}"
+        interface: "{{ item.name }}"
+        version: v4
+        addr: "{{ item.ip_address }}"
+        mask: "{{ item.prefix }}"
+
+    # Need to ensure boot variable set correctly otherwise will fail after vagrant halt / resume
+    - name: Set the boot variable correctly to allow reboots to be successful
+      nxos_command:
+        provider: "{{ cli_provider }}"
+        timeout: 30
+        commands:
+          - "configure terminal"
+          - "boot nxos {{ boot_image }}"
+
+    - name: Save the configuration via a copy run start
+      nxos_config:
+        provider: "{{ nxapi_provider }}"
+        save_when: always # Utilized in Ansible 2.4. save: is for earlier versions
+        timeout: 30
+
+    - name: Test reachability to the configured IP addresses in VRF default
+      ignore_errors: True # Don't fail the Ansible Playbook due to ping failures. Continue execution
+      nxos_ping:
+        provider: "{{ cli_provider }}"
+        dest: "{{ item }}"
+        vrf: default
+        count: 3
+      with_items:
+        - 10.10.12.1
+        - 10.10.12.2
+        - 26.26.26.1
+        - 26.26.26.2

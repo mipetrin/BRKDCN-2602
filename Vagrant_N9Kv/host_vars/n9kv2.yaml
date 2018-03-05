@@ -1,0 +1,31 @@
+---
+mgmt_ip: 127.0.0.1
+ssh_port: 3222
+http_port: 3280
+https_port: 3243
+netconf_port: 3230
+username: vagrant
+password: vagrant
+boot_image: nxos.7.0.3.I7.3.bin # Change as required when using newer version
+interfaces:
+    - name: Loopback0
+      desc: "### Basic Loopback Interface ###"
+      ip_address: 172.26.12.2
+      prefix: 24
+    - name: Ethernet1/1
+      desc: "### Connection to N9Kv1 Eth1/1 ###"
+      ip_address: 10.10.12.2
+      prefix: 24
+    - name: Vlan26
+      desc: "### Cisco Live Melbourne 2018: BRKDCN-2602 ###"
+      ip_address: 26.26.26.2
+      prefix: 24
+mac_addresses:
+    # Change Eth1/1 since it doesn't pull the base MAC vm from the Vagrant file. Others seem to work to an extent
+    - interface: Ethernet1/1
+      address: 0800.27BE.EFB1
+switchports:
+    - interface: Ethernet1/2
+      vlan: "1,26"
+    - interface: Ethernet1/3
+      vlan: "1,27-30"
