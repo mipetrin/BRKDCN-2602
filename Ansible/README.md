@@ -8,7 +8,9 @@ Be sure to update the inventory.sample file to include the relevant hosts in you
 NOTE:
 If Ansible playbooks fail for the following:
 
-ansible-playbook -i inventory nxos_plays.yml -v --tags "ping" --extra-vars "extra_host=10.66.88.1"
+```YAML
+# ansible-playbook -i inventory nxos_plays.yml -v --tags "ping" --extra-vars "extra_host=10.66.88.1"
+```
 
 This is likely because the container hasn't SSH'd into the devices previously, therefore has NOT saved the SSH Fingerprint key
 

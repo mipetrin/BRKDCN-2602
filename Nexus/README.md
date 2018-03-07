@@ -9,7 +9,11 @@ Copy them over to the bootflash:scripts/ directory
 Sample usage:
 
 Ping Range :
-# python bootflash:scripts/ping_range.py 10.10.10.3-7 vrf mipetrin-CLMEL18
+```YAML
+# python bootflash:scripts/ping_range.py 6.2.6.3-7 vrf mipetrin-CLMEL18
+```
 
 Super Command = show ip arp, show mac address, show cdp, show running-config interface
-# python bootflash:scripts/nexus_supercommand_arp_mac_cdp_run.py 10.10.10.7
+```YAML
+# python bootflash:scripts/nexus_supercommand_arp_mac_cdp_run.py 6.2.6.7
+```

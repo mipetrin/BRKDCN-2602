@@ -9,16 +9,26 @@ Download them, be sure to then specify this file with the -c option.
 Sample usage:
 
 Get Users
+```YAML
 # python tetration_get_users.py -c kangaroo_sa_credentials.json -p https://kangaroo.cisco.com
+```
 
 Get Sensors
+```YAML
 # python tetration_sensors_sw_hw.py -c kangaroo_sa_credentials.json -p https://kangaroo.cisco.com
+```
 
 Get Flows + TopN /// DNS = 53
+```YAML
 # python tetration_flow_topN_search.py -c kangaroo_sa_credentials.json -p https://kangaroo.cisco.com --port 53 --limit 500 --hours 24
+```
 
 Get Flows + TopN /// DHCP = 67
+```YAML
 # python tetration_flow_topN_search.py -c kangaroo_sa_credentials.json -p https://kangaroo.cisco.com --port 67 --limit 500 --hours 24
+```
 
 Get Flows + TopN /// NTP = 123
+```YAML
 # python tetration_flow_topN_search.py -c kangaroo_sa_credentials.json -p https://kangaroo.cisco.com --port 123 --limit 500 --hours 24
+```

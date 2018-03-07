@@ -6,6 +6,7 @@ Be sure to copy the sample_ucs_my_credentials file. Modify the variables to spec
 
 Sample Usage:
 
+```YAML
 # python ucs_backup.py
 
 # python ucs_inventory.py
@@ -15,8 +16,10 @@ Sample Usage:
 # python ucs_compute_details.py
 
 # python ucs_python_conversion_java.py
+```
 
 "Ctrl + Alt + Q" to enable recording XML Link
+```YAML
 # python ucs_python_conversion_xml.py
 
 # python ucs_python_skeleton_code.py
@@ -24,3 +27,4 @@ Sample Usage:
 # python ucs_faults.py
 
 # python ucs_kvm_launcher.py
+```
